@@ -2,134 +2,107 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Happy Birthday - Heart & Snow</title>
+    <title>Birthday Gift - Fixed</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: Arial, sans-serif; }
         canvas { position: absolute; top: 0; left: 0; z-index: 1; }
-        #bg-canvas { z-index: 0; } /* Canvas cho tuyết và tim rơi */
         
-        .content {
+        /* Nút bấm ở giữa màn hình */
+        #start-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; z-index: 10; pointer-events: none;
+            z-index: 20; padding: 12px 25px; background: transparent;
+            color: white; border: 2px solid white; cursor: pointer;
+            font-size: 18px; border-radius: 5px; transition: 0.3s;
         }
-        .thai-wish { 
-            color: #ff4d6d; font-size: 2.5rem; font-weight: bold; 
-            text-shadow: 0 0 15px #ff0000; margin-bottom: 10px;
+        #start-btn:hover { background: white; color: black; }
+
+        #text-container {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 10; text-align: center; pointer-events: none; display: none;
         }
-        .bee { position: absolute; font-size: 25px; z-index: 5; transition: all 2s ease-in-out; }
+        .wish { 
+            color: #ff4d6d; font-size: 35px; font-weight: bold; 
+            text-shadow: 0 0 20px #ff0000; white-space: nowrap;
+        }
+        .bee { position: absolute; font-size: 25px; z-index: 15; transition: all 2.5s ease-in-out; }
     </style>
 </head>
 <body>
-    <canvas id="bg-canvas"></canvas> <canvas id="heartCanvas"></canvas> <div class="content">
-        <div class="thai-wish">สุขสันต์วันเกิดนะที่รัก</div>
+    <button id="start-btn">คลิกที่นี่</button>
+
+    <div id="text-container">
+        <div class="wish">สุขสันต์วันเกิดนะที่รัก</div>
     </div>
+    <canvas id="heartCanvas"></canvas>
 
     <script>
         const canvas = document.getElementById('heartCanvas');
         const ctx = canvas.getContext('2d');
-        const bgCanvas = document.getElementById('bg-canvas');
-        const bgCtx = bgCanvas.getContext('2d');
+        const startBtn = document.getElementById('start-btn');
+        const textContainer = document.getElementById('text-container');
         
-        let particles = [];
-        let backgroundElements = []; // Chứa tuyết và tim nhỏ
+        let hearts = []; 
+        let isStarted = false;
 
         function init() {
-            canvas.width = bgCanvas.width = window.innerWidth;
-            canvas.height = bgCanvas.height = window.innerHeight;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
-
-        // --- TRÁI TIM CHÍNH ---
-        function getHeartPoint(t) {
-            return {
-                x: 16 * Math.pow(Math.sin(t), 3),
-                y: -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t))
-            };
-        }
-
-        class Particle {
-            constructor() { this.reset(); }
-            reset() {
-                this.t = Math.random() * Math.PI * 2;
-                const point = getHeartPoint(this.t);
-                this.x = canvas.width / 2;
-                this.y = canvas.height / 2;
-                this.targetX = canvas.width / 2 + point.x * 15;
-                this.targetY = canvas.height / 2 + point.y * 15;
-                this.speed = Math.random() * 0.05 + 0.02;
-                this.size = Math.random() * 2 + 1;
-            }
-            update() {
-                this.x += (this.targetX - this.x) * this.speed;
-                this.y += (this.targetY - this.y) * this.speed;
-                if (Math.abs(this.x - this.targetX) < 1) this.reset();
-            }
-            draw() {
-                ctx.fillStyle = "#ff3366";
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        // --- TUYẾT VÀ TIM RƠI ---
-        class BgElement {
-            constructor(type) {
-                this.type = type; // 'snow' hoặc 'heart'
-                this.reset();
-            }
-            reset() {
-                this.x = Math.random() * bgCanvas.width;
-                this.y = -20;
-                this.speed = Math.random() * 2 + 1;
-                this.size = Math.random() * 15 + 10;
-                this.content = this.type === 'snow' ? '❄️' : ['💝','💖','💗','💓','💞'][Math.floor(Math.random()*5)];
-            }
-            update() {
-                this.y += this.speed;
-                if (this.y > bgCanvas.height) this.reset();
-            }
-            draw() {
-                bgCtx.font = `${this.size}px Arial`;
-                bgCtx.fillText(this.content, this.x, this.y);
-            }
-        }
-
-        // Khởi tạo
+        window.addEventListener('resize', init);
         init();
-        for (let i = 0; i < 1000; i++) particles.push(new Particle());
-        for (let i = 0; i < 50; i++) backgroundElements.push(new BgElement('snow'));
-        for (let i = 0; i < 50; i++) backgroundElements.push(new BgElement('heart'));
+
+        const emojis = ['❄️', '💝', '💘', '💖', '💗', '💓', '💞', '💕', '❣️', '❤️‍🔥', '❤️'];
+
+        function createFallingHeart() {
+            if(!isStarted) return;
+            hearts.push({
+                x: Math.random() * canvas.width,
+                y: -50,
+                txt: emojis[Math.floor(Math.random() * emojis.length)],
+                size: Math.random() * 20 + 15,
+                speed: Math.random() * 3 + 2, // Tăng tốc độ rơi
+                wind: Math.sin(Math.random()) * 2
+            });
+        }
+
+        // Khi bấm vào nút
+        startBtn.onclick = () => {
+            isStarted = true;
+            startBtn.style.display = 'none'; // Ẩn nút
+            textContainer.style.display = 'block'; // Hiện chữ chúc mừng
+            
+            // Tạo đàn ong
+            for(let i=0; i<12; i++) {
+                const bee = document.createElement('div');
+                bee.className = 'bee'; bee.innerHTML = '🐝';
+                document.body.appendChild(bee);
+                const moveBee = () => {
+                    bee.style.left = Math.random() * 90 + 'vw';
+                    bee.style.top = Math.random() * 90 + 'vh';
+                    setTimeout(moveBee, Math.random() * 2000 + 1500);
+                };
+                moveBee();
+            }
+            
+            setInterval(createFallingHeart, 100);
+            animate();
+        };
 
         function animate() {
-            // Vẽ nền mờ để tạo hiệu ứng bóng ma
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => { p.update(); p.draw(); });
 
-            // Vẽ tuyết và tim rơi
-            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-            backgroundElements.forEach(el => { el.update(); el.draw(); });
+            hearts.forEach((h, index) => {
+                h.y += h.speed;
+                h.x += h.wind;
+                ctx.font = h.size + "px Arial";
+                ctx.fillText(h.txt, h.x, h.y);
+                
+                if (h.y > canvas.height) hearts.splice(index, 1);
+            });
 
             requestAnimationFrame(animate);
         }
-
-        // --- ONG BAY ---
-        function createBee() {
-            const bee = document.createElement('div');
-            bee.className = 'bee';
-            bee.innerHTML = '🐝';
-            document.body.appendChild(bee);
-            function move() {
-                bee.style.left = Math.random() * 90 + 'vw';
-                bee.style.top = Math.random() * 90 + 'vh';
-                setTimeout(move, 2000);
-            }
-            move();
-        }
-        for(let i=0; i<10; i++) createBee();
-
-        animate();
-        window.addEventListener('resize', init);
     </script>
 </body>
 </html>
