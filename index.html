@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chúc Mừng Sinh Nhật</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #0a0a0a; /* Nền đen */
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Hiệu ứng sao trắng lung linh trên nền đen */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: twinkle var(--duration) infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Nút bấm ban đầu */
+        #start-btn {
+            z-index: 10;
+            padding: 15px 40px;
+            font-size: 22px;
+            background: #000;
+            color: white;
+            border: 2px solid white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+
+        #start-btn:hover {
+            background: white;
+            color: black;
+        }
+
+        /* Bức thư đen */
+        .envelope-container {
+            display: none;
+            position: relative;
+            z-index: 5;
+            transition: opacity 0.8s ease;
+        }
+
+        .envelope {
+            width: 280px;
+            height: 180px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            position: relative;
+        }
+
+        .envelope::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            border-top: 100px solid #222;
+            border-left: 140px solid transparent;
+            border-right: 140px solid transparent;
+        }
+
+        /* Hiệu ứng biến mất bức thư */
+        .fade-out {
+            opacity: 0;
+            transform: scale(0.5);
+            pointer-events: none;
+        }
+
+        /* Container Trái Tim Hình Ảnh */
+        .heart-container {
+            display: none;
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .heart-active {
+            display: block;
+            opacity: 1;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.05); }
+            30% { transform: scale(1); }
+        }
+
+        /* Sắp xếp ảnh thành hình trái tim */
+        .photo {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border: 2px solid white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        /* Chữ tiếng Thái ở giữa */
+        .thai-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            text-shadow: 0 0 20px #ff4d6d, 0 0 30px #ff4d6d;
+            z-index: 20;
+            white-space: nowrap;
+        }
+
+        /* Các con ong bay */
+        .bee {
+            position: absolute;
+            font-size: 25px;
+            z-index: 25;
+            transition: 0.5s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stars" id="star-field"></div>
+
+    <button id="start-btn" onclick="openMessage()">คลิกที่นี่</button>
+
+    <div class="envelope-container" id="env-cont">
+        <div class="envelope"></div>
+    </div>
+
+    <div class="heart-container" id="heart-box">
+        <div class="thai-text">สุขสันต์วันเกิด</div>
+        <div class="bee">🐝</div>
+        <div class="bee">🐝</div>
+        <div class="bee">🐝</div>
+        <div class="bee">🐝</div>
+        <div class="bee">🐝</div>
+    </div>
+
+    <script>
+        // Tạo sao nền
+        const starField = document.getElementById('star-field');
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            const size = Math.random() * 3 + 'px';
+            star.style.width = size;
+            star.style.height = size;
+            star.style.setProperty('--duration', Math.random() * 3 + 2 + 's');
+            starField.appendChild(star);
+        }
+
+        function openMessage() {
+            document.getElementById('start-btn').style.display = 'none';
+            const env = document.getElementById('env-cont');
+            env.style.display = 'block';
+
+            // Sau 1 giây, bức thư biến mất và trái tim hiện ra
+            setTimeout(() => {
+                env.classList.add('fade-out');
+                setTimeout(() => {
+                    env.style.display = 'none';
+                    const heart = document.getElementById('heart-box');
+                    heart.classList.add('heart-active');
+                    startBees();
+                }, 800);
+            }, 1000);
+        }
+
+        function startBees() {
+            const bees = document.querySelectorAll('.bee');
+            bees.forEach(bee => moveBee(bee));
+        }
+
+        function moveBee(bee) {
+            const x = Math.random() * (window.innerWidth - 100);
+            const y = Math.random() * (window.innerHeight - 100);
+            bee.style.left = x + 'px';
+            bee.style.top = y + 'px';
+            setTimeout(() => moveBee(bee), Math.random() * 2000 + 1000);
+        }
+    </script>
+</body>
+</html>
